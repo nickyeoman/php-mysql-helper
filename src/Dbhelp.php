@@ -1,5 +1,5 @@
 <?php
-namespace Nickyeoman\Ddbhelper;
+namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
@@ -15,22 +15,32 @@ class Dbhelp {
 
   public $con = null;
 
-  function __construct($host = 'localhost', $username = 'root', $password = null, $db = null, $port = null) {
-    echo "constuct started";
-    $this->con = new mysqli($host, $username, $password, $db);
-    echo "connection created";
-    if ($this->con->connect_error) {
-      die("Connection failed: " . $conn->connect_error);
-    } else {
-      echo "Connected successfully";
-    }
-    echo "done construct";
-  }
+  function __construct($host = 'localhost', $username = 'root', $password = null, $db = null, $port = '3306') {
 
-  function testquery() {
-    $result = mysqli_query($this->mysqli, "SELECT 'A world full of ' AS _msg FROM DUAL");
-    print_r($result); die();
-  }
+    $this->con = new \mysqli($host, $username, $password, $db, $port);
+
+    if ($this->con->connect_error) {
+      die("<p>Connection failed: </p>" . $this->con->connect_error);
+    }
+
+  } //end onstruct
+
+  function get($table = null, $select = '*', $order = null, $limit = null){
+    if ( empty($table) )
+      die("Error, no table supplied");
+
+    $query = "SELECT $select FROM $table";
+    $result = $this->con->query($query);
+    while($fetched = $result->fetch_array(MYSQLI_ASSOC)) {
+      $rows[] = $fetched;
+    }
+
+    return $rows;
+  } //end get
+
+  function close() {
+    $this->con->close();
+  } //end close
 
   public function create($table, $array, $insert = "INSERT INTO") {
 
@@ -56,7 +66,7 @@ class Dbhelp {
     $cols = implode(",",$columns);
     $values = implode(",",$data);
 
-  $sql = &lt;&lt;&lt;EOSQL
+  $sql = <<<EOSQL
     $insert `$table`
     ($cols)
     VALUES
