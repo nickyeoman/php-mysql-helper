@@ -1,0 +1,19 @@
+{
+    "name": "nickyeoman/php-mysql-helper",
+    "description": "makes life easier when working with mysql in php8",
+    "homepage": "https://www.nickyeoman.com/blog/php/php-mysql-insert-from-array/",
+    "type": "library",
+    "license": "CC0-1.0",
+    "authors": [
+        {
+            "name": "Nick Yeoman",
+            "email": "c@nickyeoman.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable" : true,
+    "require": {},
+    "autoload": {
+       "psr-4": { "Nickyeoman\\MySQLi\\": "src/" }
+   }
+}
