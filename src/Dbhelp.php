@@ -1,5 +1,5 @@
 <?php
-namespace Nickyeoman\MySQLi;
+namespace Nickyeoman\Ddbhelper;
 
 /**
 * MySQL helper
@@ -11,12 +11,20 @@ namespace Nickyeoman\MySQLi;
 * v2 now in composer
 **/
 
-class MySQLi {
+class Dbhelp {
 
-  public $mysqli = null;
+  public $con = null;
 
   function __construct($host = 'localhost', $username = 'root', $password = null, $db = null, $port = null) {
-    $this->mysqli = mysqli_connect($host, $username, $password, $db);
+    echo "constuct started";
+    $this->con = new mysqli($host, $username, $password, $db);
+    echo "connection created";
+    if ($this->con->connect_error) {
+      die("Connection failed: " . $conn->connect_error);
+    } else {
+      echo "Connected successfully";
+    }
+    echo "done construct";
   }
 
   function testquery() {
