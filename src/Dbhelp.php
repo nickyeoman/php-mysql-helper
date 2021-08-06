@@ -85,7 +85,10 @@ class Dbhelp {
   } //end close
 
 
-  //id is col name to update
+  /**
+  * array is what to update
+  * id is col name to update
+  **/
   public function update($table, $array, $id) {
 
     if (empty($table)){
@@ -105,7 +108,7 @@ class Dbhelp {
     $set = rtrim($set, ',');
 
     $sql = <<<EOSQL
-      UPDATE $table
+      UPDATE `$table`
       SET $set
       WHERE $where;
     EOSQL;
