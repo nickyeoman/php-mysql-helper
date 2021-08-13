@@ -3,8 +3,7 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-* v2.0.0
-* Last Updated: Jul 31, 2021
+* v2.0.1
 * URL: https://www.nickyeoman.com/blog/php/php-mysql-insert-from-array/
 *
 * Changelog:
@@ -23,15 +22,17 @@ class Dbhelp {
 
       //debug
       if (true){
+
         echo "<h1>mysql connection error</h1>";
         print_r([$host, $username, $password, $db, $port]);
+        
       }
 
       die("<pre>Connection failed: " . $this->con->connect_error . "</pre>");
 
     }
 
-  } //end construct
+  } //end construct function
 
   function findall($table = null, $select = '*', $where = null, $order = null, $limit = null){
     if ( empty($table) )
@@ -85,10 +86,7 @@ class Dbhelp {
   } //end close
 
 
-  /**
-  * array is what to update
-  * id is col name to update
-  **/
+  //id is col name to update
   public function update($table, $array, $id) {
 
     if (empty($table)){
