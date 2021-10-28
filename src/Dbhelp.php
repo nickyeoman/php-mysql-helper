@@ -3,8 +3,8 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-* v2.0.1
-* URL: https://www.nickyeoman.com/blog/php/php-mysql-insert-from-array/
+* v2.0.2
+* URL: https://github.com/nickyeoman/php-mysql-helper
 *
 * Changelog:
 * v2 now in composer
@@ -25,16 +25,18 @@ class Dbhelp {
 
         echo "<h1>mysql connection error</h1>";
         print_r([$host, $username, $password, $db, $port]);
-        
+
       }
 
       die("<pre>Connection failed: " . $this->con->connect_error . "</pre>");
 
     }
 
-  } //end construct function
+  } 
+  //end construct function
 
   function findall($table = null, $select = '*', $where = null, $order = null, $limit = null){
+    
     if ( empty($table) )
       die("Error, no table supplied");
 
@@ -56,12 +58,13 @@ class Dbhelp {
     //print_r($query); die();
 
     $result = $this->con->query($query);
-    while($fetched = $result->fetch_array(MYSQLI_ASSOC)) {
+    while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
       $rows[] = $fetched;
     }
 
     return $rows;
-  } //end get
+  } 
+  //end findall
 
   function findone($table = null, $col = null, $match = null){
 
@@ -80,10 +83,12 @@ class Dbhelp {
     return $returnone;
 
   }
+  //end findone
 
   function close() {
     $this->con->close();
-  } //end close
+  } 
+  //end close
 
 
   //id is col name to update
@@ -117,7 +122,8 @@ class Dbhelp {
       die("Error: " . $sql . "<br>" . $this->con->error);
     } //end if
 
-  } // end function update
+  } 
+  // end function update
 
   public function create($table, $array, $insert = "INSERT INTO") {
 
@@ -160,6 +166,8 @@ class Dbhelp {
     die("Error: " . $sql . "<br>" . $this->con->error);
   }
 
-  } //end create
+  } 
+  //end create
 
-} //end class
+} 
+//end class
