@@ -32,10 +32,11 @@ class Dbhelp {
 
     }
 
-  }
+  } 
   //end construct function
 
   function findall($table = null, $select = '*', $where = null, $order = null, $limit = null){
+    
 
     if ( empty($table) )
       die("Error, no table supplied");
@@ -120,7 +121,7 @@ class Dbhelp {
       UPDATE `$table`
       SET $set
       WHERE $where;
-    EOSQL;
+EOSQL;
 
     if ($this->con->query($sql) === TRUE) {
       return $this->con->insert_id;
@@ -128,7 +129,7 @@ class Dbhelp {
       die("Error: " . $sql . "<br>" . $this->con->error);
     } //end if
 
-  }
+  } 
   // end function update
 
   public function create($table, $array, $insert = "INSERT INTO") {
@@ -164,7 +165,7 @@ class Dbhelp {
     ($cols)
     VALUES
     ($values)
-  EOSQL;
+EOSQL;
 
   if ($this->con->query($sql) === TRUE) {
     return $this->con->insert_id;
@@ -172,8 +173,8 @@ class Dbhelp {
     die("Error: " . $sql . "<br>" . $this->con->error);
   }
 
-  }
-  //end create
+ }
+ //end create
 
 }
 //end class
