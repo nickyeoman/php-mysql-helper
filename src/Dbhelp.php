@@ -3,7 +3,7 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-* v2.0.3
+* v2.1.0
 * URL: https://github.com/nickyeoman/php-mysql-helper
 *
 * Changelog:
@@ -32,11 +32,34 @@ class Dbhelp {
 
     }
 
-  } 
+  }
   //end construct function
 
-  function findall($table = null, $select = '*', $where = null, $order = null, $limit = null){
-    
+  // Just do a query
+  public function query($sql) {
+
+    $query = $sql;
+    $results = $this->con->query($query);
+
+    if ( $results->num_rows > 0 ) {
+
+      while( $fetched = $results->fetch_array(MYSQLI_ASSOC) ) {
+        $rows[] = $fetched;
+      }
+      //end while
+
+      return $rows;
+
+    } else {
+
+      return null;
+
+    }
+
+  }
+
+  public function findall($table = null, $select = '*', $where = null, $order = null, $limit = null){
+
 
     if ( empty($table) )
       die("Error, no table supplied");
@@ -60,19 +83,26 @@ class Dbhelp {
 
     $result = $this->con->query($query);
 
-    while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
-      $rows[] = $fetched;
-    }
+    if ( !empty($result) ) {
 
-    if ( empty($rows))
-      return null;
-    else
+      while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
+        $rows[] = $fetched;
+      }
+      //end while
+
       return $rows;
+
+    } else {
+
+      return null;
+
+    }
+    //end if
 
   }
   //end findall
 
-  function findone($table = null, $col = null, $match = null){
+  public function findone($table = null, $col = null, $match = null){
 
     if ( empty($table) )
       die("Error, no table supplied");
@@ -92,7 +122,7 @@ class Dbhelp {
   }
   //end findone
 
-  function close() {
+  public function close() {
     $this->con->close();
   }
   //end close
@@ -129,14 +159,13 @@ EOSQL;
       die("Error: " . $sql . "<br>" . $this->con->error);
     } //end if
 
-  } 
+  }
   // end function update
 
   public function create($table, $array, $insert = "INSERT INTO") {
 
-    if (empty($table)){
+    if (empty($table))
       die("no table supplied");
-    }
 
     //Check if user wants to insert or update
     if ($insert != "UPDATE") {
@@ -167,14 +196,26 @@ EOSQL;
     ($values)
 EOSQL;
 
-  if ($this->con->query($sql) === TRUE) {
+  if ($this->con->query($sql) === TRUE)
     return $this->con->insert_id;
-  } else {
+  else
     die("Error: " . $sql . "<br>" . $this->con->error);
-  }
 
  }
  //end create
+
+ public function delete($table, $where) {
+   if (empty($table))
+     die("no table supplied");
+
+   $query = "DELETE FROM `$table` WHERE $where";
+
+   if ($this->con->query($query) === TRUE) {
+     return true;
+   } else {
+     die("Error: " . $query . "<br>" . $this->con->error);
+   }
+ }
 
 }
 //end class
