@@ -3,11 +3,8 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-* v2.0.1
-* URL: https://www.nickyeoman.com/blog/php/php-mysql-insert-from-array/
-*
-* Changelog:
-* v2 now in composer
+* v2.0.4
+* URL: https://github.com/nickyeoman/php-mysql-helper
 **/
 
 class Dbhelp {
@@ -25,16 +22,19 @@ class Dbhelp {
 
         echo "<h1>mysql connection error</h1>";
         print_r([$host, $username, $password, $db, $port]);
-        
+
       }
 
       die("<pre>Connection failed: " . $this->con->connect_error . "</pre>");
 
     }
 
-  } //end construct function
+  }
+  //end construct function
 
   function findall($table = null, $select = '*', $where = null, $order = null, $limit = null){
+
+
     if ( empty($table) )
       die("Error, no table supplied");
 
@@ -56,12 +56,18 @@ class Dbhelp {
     //print_r($query); die();
 
     $result = $this->con->query($query);
-    while($fetched = $result->fetch_array(MYSQLI_ASSOC)) {
+
+    while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
       $rows[] = $fetched;
     }
 
-    return $rows;
-  } //end get
+    if ( empty($rows))
+      return null;
+    else
+      return $rows;
+
+  }
+  //end findall
 
   function findone($table = null, $col = null, $match = null){
 
@@ -75,31 +81,40 @@ class Dbhelp {
       die("Error, no match supplied");
 
     $arrwithone = $this->findall($table, '*', "`$col` LIKE '$match'", null, "1");
-    $returnone = $arrwithone[0]; //just one array
-
-    return $returnone;
+    if ( !empty($arrwithone[0]) )
+      return($arrwithone[0]); //just one array
+    else
+      return(null);
 
   }
+  //end findone
 
   function close() {
     $this->con->close();
-  } //end close
+  }
+  //end close
 
 
   //id is col name to update
   public function update($table, $array, $id) {
 
-    if (empty($table)){
+    if (empty($table))
       die("no table supplied");
-    }
 
-    $where = "$id = $array[$id]";
+    $where = "$id = '$array[$id]'";
 
     $set = '';
 
     //array to string
     foreach ($array as $key => $value) {
-        $set .= "`$key` = '$value',";
+
+      if ( $key == $id )
+        continue;
+
+      $cleanValue = mysqli_real_escape_string($this->con, $value);
+
+      $set .= "`$key` = '$cleanValue',";
+
     }
 
     //remove final comma
@@ -108,16 +123,18 @@ class Dbhelp {
     $sql = <<<EOSQL
       UPDATE `$table`
       SET $set
-      WHERE $where;
-    EOSQL;
+      WHERE $where
+      ;
+EOSQL;
 
-    if ($this->con->query($sql) === TRUE) {
+    if ( $this->con->query($sql) === TRUE ) {
       return $this->con->insert_id;
     } else {
       die("Error: " . $sql . "<br>" . $this->con->error);
     } //end if
 
-  } // end function update
+  }
+  // end function update
 
   public function create($table, $array, $insert = "INSERT INTO") {
 
@@ -152,7 +169,7 @@ class Dbhelp {
     ($cols)
     VALUES
     ($values)
-  EOSQL;
+EOSQL;
 
   if ($this->con->query($sql) === TRUE) {
     return $this->con->insert_id;
@@ -160,6 +177,8 @@ class Dbhelp {
     die("Error: " . $sql . "<br>" . $this->con->error);
   }
 
-  } //end create
+ }
+ //end create
 
-} //end class
+}
+//end class
