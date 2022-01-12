@@ -3,7 +3,8 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-* v2.0.4
+<<<<<<< HEAD
+* v2.1.1
 * URL: https://github.com/nickyeoman/php-mysql-helper
 **/
 
@@ -32,8 +33,8 @@ class Dbhelp {
   }
   //end construct function
 
-  function findall($table = null, $select = '*', $where = null, $order = null, $limit = null){
 
+  public function findall($table = null, $select = '*', $where = null, $order = null, $limit = null){
 
     if ( empty($table) )
       die("Error, no table supplied");
@@ -57,9 +58,22 @@ class Dbhelp {
 
     $result = $this->con->query($query);
 
-    while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
-      $rows[] = $fetched;
+    if ( !empty($result) ) {
+
+      while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
+        $rows[] = $fetched;
+      }
+      //end while
+
+      return $rows;
+
+    } else {
+
+      return null;
+
     }
+    //end if
+
 
     if ( empty($rows))
       return null;
@@ -69,7 +83,7 @@ class Dbhelp {
   }
   //end findall
 
-  function findone($table = null, $col = null, $match = null){
+  public function findone($table = null, $col = null, $match = null){
 
     if ( empty($table) )
       die("Error, no table supplied");
@@ -89,7 +103,7 @@ class Dbhelp {
   }
   //end findone
 
-  function close() {
+  public function close() {
     $this->con->close();
   }
   //end close
@@ -123,6 +137,7 @@ class Dbhelp {
     $sql = <<<EOSQL
       UPDATE `$table`
       SET $set
+
       WHERE $where
       ;
 EOSQL;
@@ -138,9 +153,8 @@ EOSQL;
 
   public function create($table, $array, $insert = "INSERT INTO") {
 
-    if (empty($table)){
+    if (empty($table))
       die("no table supplied");
-    }
 
     //Check if user wants to insert or update
     if ($insert != "UPDATE") {
@@ -171,14 +185,26 @@ EOSQL;
     ($values)
 EOSQL;
 
-  if ($this->con->query($sql) === TRUE) {
+  if ($this->con->query($sql) === TRUE)
     return $this->con->insert_id;
-  } else {
+  else
     die("Error: " . $sql . "<br>" . $this->con->error);
-  }
 
  }
  //end create
+
+ public function delete($table, $where) {
+   if (empty($table))
+     die("no table supplied");
+
+   $query = "DELETE FROM `$table` WHERE $where";
+
+   if ($this->con->query($query) === TRUE) {
+     return true;
+   } else {
+     die("Error: " . $query . "<br>" . $this->con->error);
+   }
+ }
 
 }
 //end class
