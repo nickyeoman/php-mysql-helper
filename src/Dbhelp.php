@@ -3,33 +3,38 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-<<<<<<< HEAD
-* v2.1.1
+* v2.1.2
 * URL: https://github.com/nickyeoman/php-mysql-helper
 **/
 
 class Dbhelp {
 
   public $con = null;
+  public $debug;
 
-  function __construct($host = 'localhost', $username = 'root', $password = null, $db = null, $port = '3306') {
+  function __construct($host = 'localhost', $username = 'root', $password = null, $db = null, $port = '3306', $debug = false) {
+
+    //Debug mode
+    if ($debug)
+      $this->debug = true;
+    elseif ($debug == "display")
+      $this->debug = true;
+    else
+      $this->debug = false;
 
     $this->con = new \mysqli($host, $username, $password, $db, $port);
 
-    if ($this->con->connect_error) {
+    if ( $this->con->connect_error && $this->debug ) {
 
-      //debug
-      if (true){
+      echo "<h1>mysql connection error</h1>";
+      print_r([$host, $username, $password, $db, $port]);
+      die("<pre>Connection failed: " . $this->con->connect_error . "</pre>");
 
-        echo "<h1>mysql connection error</h1>";
-        print_r([$host, $username, $password, $db, $port]);
-
-      }
+    } elseif ( $this->con->connect_error && !$this->debug ) {
 
       die("<pre>Connection failed: " . $this->con->connect_error . "</pre>");
 
     }
-
   }
   //end construct function
 
@@ -65,7 +70,8 @@ class Dbhelp {
       }
       //end while
 
-      return $rows;
+      if ( !empty($rows) )
+        return $rows;
 
     } else {
 
@@ -125,9 +131,14 @@ class Dbhelp {
       if ( $key == $id )
         continue;
 
-      $cleanValue = mysqli_real_escape_string($this->con, $value);
-
-      $set .= "`$key` = '$cleanValue',";
+      if ( $value == 'NOW()' ) {
+        $cleanValue = 'NOW()';
+        $set .= "`$key` = $cleanValue,";
+      } else {
+        $cleanValue = mysqli_real_escape_string($this->con, $value);
+        $set .= "`$key` = '$cleanValue',";
+      }
+      
 
     }
 
@@ -141,7 +152,10 @@ class Dbhelp {
       WHERE $where
       ;
 EOSQL;
-
+    
+    //debug
+    //dump($sql);die();
+    
     if ( $this->con->query($sql) === TRUE ) {
       return $this->con->insert_id;
     } else {
@@ -153,24 +167,30 @@ EOSQL;
 
   public function create($table, $array, $insert = "INSERT INTO") {
 
-    if (empty($table))
+    if ( empty($table) )
       die("no table supplied");
+
+    if ( empty($array) )
+      die("no insert array supplied");
 
     //Check if user wants to insert or update
     if ($insert != "UPDATE") {
       $insert = "INSERT INTO";
     }
 
-    $columns = array();
-    $data = array();
+    $columns  = array();
+    $data     = array();
 
     foreach ( $array as $key => $value) {
-      $columns[] = $key;
-      if ($value != "") {
+
+      $columns[] = "`" . $key . "`";
+
+      if ( $value == 'NOW()' )
+        $data[] = 'NOW()';
+      elseif ($value != "")
         $data[] = "'" . $value . "'";
-      } else {
+      else
         $data[] = "NULL";
-      }
 
       //TODO: ensure no commas are in the values
     }
