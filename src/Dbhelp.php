@@ -135,10 +135,12 @@ class Dbhelp {
         $cleanValue = 'NOW()';
         $set .= "`$key` = $cleanValue,";
       } else {
+
         $cleanValue = mysqli_real_escape_string($this->con, $value);
+
         $set .= "`$key` = '$cleanValue',";
+
       }
-      
 
     }
 
@@ -152,10 +154,10 @@ class Dbhelp {
       WHERE $where
       ;
 EOSQL;
-    
+
     //debug
     //dump($sql);die();
-    
+
     if ( $this->con->query($sql) === TRUE ) {
       return $this->con->insert_id;
     } else {
