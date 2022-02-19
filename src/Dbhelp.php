@@ -3,24 +3,17 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-* v2.1.2
+* v2.1.3
 * URL: https://github.com/nickyeoman/php-mysql-helper
 **/
 
 class Dbhelp {
 
-  public $con = null;
-  public $debug;
+  public $con = null; // connection
+  public $debug = false; // Show debugging info?
+  public $sql = array(); //Last Run Query
 
   function __construct($host = 'localhost', $username = 'root', $password = null, $db = null, $port = '3306', $debug = false) {
-
-    //Debug mode
-    if ($debug)
-      $this->debug = true;
-    elseif ($debug == "display")
-      $this->debug = true;
-    else
-      $this->debug = false;
 
     $this->con = new \mysqli($host, $username, $password, $db, $port);
 
@@ -38,6 +31,38 @@ class Dbhelp {
   }
   //end construct function
 
+  // Return the number of rows of a table based on a where
+  public function count($table = null, $where = null) {
+
+    if ( empty($table) )
+      die("Error, no table supplied");
+
+    $query = "SELECT COUNT(*) AS count FROM `$table`";
+
+    if (!empty($where)){
+      $query = $query . " WHERE $where";
+    }
+
+    // debugging
+    $this->sql[] = $query;
+
+    $result = $this->con->query($query);
+
+    if ( !empty($result) ) {
+
+        $arr = $result->fetch_array(MYSQLI_ASSOC);
+        $return = $arr['count'];
+
+    } else {
+
+      $return = 0;
+      
+    }
+
+    return $return;
+
+  }
+  // end count function
 
   public function findall($table = null, $select = '*', $where = null, $order = null, $limit = null){
 
@@ -58,9 +83,10 @@ class Dbhelp {
       $query = $query . " LIMIT $limit";
     }
 
-    //debug
-    //print_r($query); die();
+    // debugging
+    $this->sql[] = $query;
 
+    // Execute query
     $result = $this->con->query($query);
 
     if ( !empty($result) ) {
