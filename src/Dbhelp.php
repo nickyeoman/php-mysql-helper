@@ -56,7 +56,7 @@ class Dbhelp {
     } else {
 
       $return = 0;
-      
+
     }
 
     return $return;
@@ -162,7 +162,10 @@ class Dbhelp {
         $set .= "`$key` = $cleanValue,";
       } else {
 
-        $cleanValue = mysqli_real_escape_string($this->con, $value);
+        if ( !empty($value) )
+          $cleanValue = mysqli_real_escape_string($this->con, $value);
+        else
+          $cleanValue = '';
 
         $set .= "`$key` = '$cleanValue',";
 
