@@ -164,6 +164,8 @@ class Dbhelp {
 
         if ( !empty($value) )
           $cleanValue = mysqli_real_escape_string($this->con, $value);
+        else if ( $value == 0 )
+          $cleanValue = '0';
         else
           $cleanValue = '';
 
