@@ -259,5 +259,24 @@ EOSQL;
    }
  }
 
+ public function query($query = '') {
+
+   if (empty($query))
+    return false;
+  else {
+    $result = $this->con->query($query);
+    if ( !empty($result) ) {
+
+      while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
+        $rows[] = $fetched;
+      }
+      //end while
+
+      if ( !empty($rows) )
+        return $rows;
+   }
+
+ }
+}
 }
 //end class
