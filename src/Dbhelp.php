@@ -3,7 +3,7 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-* v2.2.0
+* v2.2.1
 * URL: https://github.com/nickyeoman/php-mysql-helper
 **/
 
@@ -265,7 +265,7 @@ EOSQL;
     return false;
   else {
     $result = $this->con->query($query);
-    
+
     if ( !empty($result) ) {
 
       while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
@@ -325,7 +325,7 @@ public function migrate($table , $sch = array() ) {
       break;
 
     }
-    
+
     $query = "ALTER TABLE `$table` CHANGE IF EXISTS `$column` $column $coltype $colnull $coldefault $colcomment;";
     if ($this->con->query($query) === TRUE) {
       echo "<li>Changed column $column</li>";
@@ -338,6 +338,16 @@ public function migrate($table , $sch = array() ) {
       echo "<li>Added column $column</li>";
     } else {
       die("Error: Create table didn't work: " . $query . "<br>" . $this->con->error);
+    }
+
+    // If Unique
+    if ( $col['unique'] == "Yes" ) {
+      $query = "ALTER TABLE `$table` ADD UNIQUE(`${col['name']}`);";
+      if ($this->con->query($query) === TRUE) {
+        echo "<li>Made unique $column</li>";
+      } else {
+        die("Error: Create table didn't work: " . $query . "<br>" . $this->con->error);
+      }
     }
 
   }
