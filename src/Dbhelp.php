@@ -3,7 +3,7 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-* v2.2.1
+* v2.2.2
 * URL: https://github.com/nickyeoman/php-mysql-helper
 **/
 
@@ -341,12 +341,14 @@ public function migrate($table , $sch = array() ) {
     }
 
     // If Unique
-    if ( $col['unique'] == "Yes" ) {
-      $query = "ALTER TABLE `$table` ADD UNIQUE(`${col['name']}`);";
-      if ($this->con->query($query) === TRUE) {
-        echo "<li>Made unique $column</li>";
-      } else {
-        die("Error: Create table didn't work: " . $query . "<br>" . $this->con->error);
+    if ( !empty($col['unique']) ){
+      if ( $col['unique'] == "Yes" ) {
+        $query = "ALTER TABLE `$table` ADD UNIQUE(`${col['name']}`);";
+        if ($this->con->query($query) === TRUE) {
+          echo "<li>Made unique $column</li>";
+        } else {
+          die("Error: Create table didn't work: " . $query . "<br>" . $this->con->error);
+        }
       }
     }
 
