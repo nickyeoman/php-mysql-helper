@@ -3,7 +3,7 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-* v2.1.3
+* v2.2.0
 * URL: https://github.com/nickyeoman/php-mysql-helper
 **/
 
@@ -265,6 +265,7 @@ EOSQL;
     return false;
   else {
     $result = $this->con->query($query);
+    
     if ( !empty($result) ) {
 
       while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
@@ -278,5 +279,72 @@ EOSQL;
 
  }
 }
+
+/**
+ * Simp'e migration helper
+ *
+ */
+public function migrate($table , $sch = array() ) {
+
+  echo "<h1>Migrate table: $table</h1><ul>";
+
+  // make sure table exists
+  $query = "CREATE TABLE IF NOT EXISTS `$table` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (`id`)
+  ) AUTO_INCREMENT=1;";
+
+  if ($this->con->query($query) === TRUE) {
+    echo "<li>Table created: $table</li>";
+  } else {
+    die("Error: Create table didn't work: " . $query . "<br>" . $this->con->error);
+  }
+
+  // make sure columns are there
+  foreach ( $sch as $col) {
+    //dump($col);
+
+    $column = $col['name'];
+    $coltype = $col['type'];
+    $coltype = ( !empty($col['size'])) ? "${coltype}(${col['size']})" : "$coltype";
+    $coldefault = ( !empty($col['default'])) ? "DEFAULT ${col['default']}" : NULL;
+    $colnull = ( $col['null'] == "No")  ? "NOT NULL" : NULL;
+    $colcomment = ( !empty($col['comment'])) ? "COMMENT '${col['comment']}'" : NULL;
+
+    // drop column
+    if ($col['type'] == 'drop' ) {
+
+      $query = "ALTER TABLE `$table` DROP COLUMN IF EXISTS `$column`;";
+
+      if ($this->con->query($query) === TRUE) {
+        echo "<li>Dropped $column</li>";
+      } else {
+        die("Error: Create table didn't work: " . $query . "<br>" . $this->con->error);
+      }
+
+      break;
+
+    }
+    
+    $query = "ALTER TABLE `$table` CHANGE IF EXISTS `$column` $column $coltype $colnull $coldefault $colcomment;";
+    if ($this->con->query($query) === TRUE) {
+      echo "<li>Changed column $column</li>";
+    } else {
+      die("Error: Create table didn't work: " . $query . "<br>" . $this->con->error);
+    }
+
+    $query = "ALTER TABLE `$table` ADD COLUMN IF NOT EXISTS `$column` $coltype $colnull $coldefault $colcomment;";
+    if ($this->con->query($query) === TRUE) {
+      echo "<li>Added column $column</li>";
+    } else {
+      die("Error: Create table didn't work: " . $query . "<br>" . $this->con->error);
+    }
+
+  }
+  echo "</ul>";
+
+}
+
+
 }
 //end class
