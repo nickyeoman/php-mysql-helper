@@ -124,7 +124,7 @@ class Dbhelp {
       die("Error, no column supplied");
 
     if ( empty($match) )
-      die("Error, no match supplied");
+      die("Error, nickyeoman:php-mysql-helper - no match (third param) supplied");
 
     $arrwithone = $this->findall($table, '*', "`$col` LIKE '$match'", null, "1");
     if ( !empty($arrwithone[0]) )
