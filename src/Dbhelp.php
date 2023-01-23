@@ -3,7 +3,7 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-* v2.2.2
+* v2.2.3
 * URL: https://github.com/nickyeoman/php-mysql-helper
 **/
 
@@ -15,6 +15,23 @@ class Dbhelp {
 
   function __construct($host = 'localhost', $username = 'root', $password = null, $db = null, $port = '3306', $debug = false) {
 
+    // Check for dotenv variables and use those
+    if ( !empty($_ENV['DBHOST']) )
+      $host = $_ENV['DBHOST'];
+    
+    if ( !empty($_ENV['DBUSER']) )
+      $username = $_ENV['DBUSER'];
+
+    if ( !empty($_ENV['DBPASSWORD']) )
+      $password = $_ENV['DBPASSWORD'];
+
+    if ( !empty($_ENV['DB']) )
+      $db = $_ENV['DB'];
+      
+    if ( !empty($_ENV['DBPORT']) )
+      $port = $_ENV['DBPORT'];
+
+    // Create connection
     $this->con = new \mysqli($host, $username, $password, $db, $port);
 
     if ( $this->con->connect_error && $this->debug ) {
@@ -261,27 +278,53 @@ EOSQL;
 
  public function query($query = '') {
 
-   if (empty($query))
+  if (empty($query))
     return false;
   else {
+
     $result = $this->con->query($query);
 
     if ( !empty($result) ) {
 
-      while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
-        $rows[] = $fetched;
-      }
-      //end while
+      if ( is_array($result) ) {
+        while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
+          $rows[] = $fetched;
+        } //end while
 
-      if ( !empty($rows) )
-        return $rows;
+        if ( !empty($rows) )
+          return $rows;
+      } else {
+        return $result;
+      }
    }
 
  }
 }
 
+// Checks if a table exists
+public function tableExists($table = '') {
+
+  if (empty($table))
+    return false;
+
+  $sql = 'SELECT count(TABLE_NAME) as `value` FROM TABLES WHERE TABLE_NAME = "' . $table . '"';
+
+  $tabletest = new \mysqli($_ENV['DBHOST'], $_ENV['DBUSER'], $_ENV['DBPASSWORD'], 'information_schema', $_ENV['DBPORT']);
+  
+  $result = $tabletest->query($sql); 
+  
+  $arr = $result->fetch_array(MYSQLI_ASSOC);
+  $tabletest->close();
+
+  if ( $arr['value'] )
+    return true;
+  else
+    return false;
+
+}
+
 /**
- * Simp'e migration helper
+ * Migration helper
  *
  */
 public function migrate($table , $sch = array() ) {
