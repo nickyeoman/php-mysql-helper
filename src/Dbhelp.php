@@ -3,7 +3,7 @@ namespace Nickyeoman\Dbhelper;
 
 /**
 * MySQL helper
-* v2.2.3
+* v2.3.0
 * URL: https://github.com/nickyeoman/php-mysql-helper
 **/
 
@@ -186,7 +186,11 @@ class Dbhelp {
         else
           $cleanValue = '';
 
-        $set .= "`$key` = '$cleanValue',";
+        if ( is_null($value) ){
+          $set .= "`$key` = NULL,";
+        } else {
+          $set .= "`$key` = '$cleanValue',";
+        }
 
       }
 
@@ -230,30 +234,63 @@ EOSQL;
 
     $columns  = array();
     $data     = array();
+    
+    if ( !array_key_exists( 0,$array ) )
+      $array[0] = null;
 
-    foreach ( $array as $key => $value) {
+    if ( is_array($array[0])) {
+      
+      foreach($array as $row){
+        $newarr = array();
+        foreach($row as $key => $value) {
+          if(!in_array("`" . $key . "`", $columns)){
+            $columns[] = "`" . $key . "`";
+          }
 
-      $columns[] = "`" . $key . "`";
+          $newarr[] = $value;
+        }  
+        
+        $tostring = implode(",",$newarr);
+        $values[] = "($tostring)";
 
-      if ( $value == 'NOW()' )
-        $data[] = 'NOW()';
-      elseif ($value != "")
-        $data[] = "'" . $value . "'";
-      else
-        $data[] = "NULL";
-
-      //TODO: ensure no commas are in the values
-    }
-
-    $cols = implode(",",$columns);
-    $values = implode(",",$data);
-
-  $sql = <<<EOSQL
-    $insert `$table`
-    ($cols)
-    VALUES
-    ($values)
+        
+      }
+      $cols = implode(",",$columns);
+      $values = implode(",",$values);
+      $sql = <<<EOSQL
+      $insert `$table`
+      ($cols)
+      VALUES
+      $values
 EOSQL;
+
+    } else {
+      
+      unset($array[0]);
+      foreach ( $array as $key => $value) {
+        
+        $columns[] = "`" . $key . "`";
+
+        if ( $value == 'NOW()' )
+          $data[] = 'NOW()';
+        elseif ($value != "")
+          $data[] = "'" . $value . "'";
+        else
+          $data[] = "NULL";
+
+        //TODO: ensure no commas are in the values
+      }
+
+      $cols = implode(",",$columns);
+      $values = implode(",",$data);
+
+    $sql = <<<EOSQL
+      $insert `$table`
+      ($cols)
+      VALUES
+      ($values)
+EOSQL;
+    } // end if array
 
   if ($this->con->query($sql) === TRUE)
     return $this->con->insert_id;
@@ -278,28 +315,27 @@ EOSQL;
 
  public function query($query = '') {
 
-  if (empty($query))
+  if (empty($query)) {
     return false;
-  else {
-
+  } else {
     $result = $this->con->query($query);
-
-    if ( !empty($result) ) {
-
-      if ( is_array($result) ) {
-        while( $fetched = $result->fetch_array(MYSQLI_ASSOC) ) {
+    if ($result) {
+      if (is_object($result)) {
+        while ($fetched = $result->fetch_assoc()) {
           $rows[] = $fetched;
-        } //end while
-
-        if ( !empty($rows) )
+        }
+        if (!empty($rows)) {
           return $rows;
+        }
       } else {
         return $result;
       }
-   }
+    } else {
+      return false;
+    }
+  }
 
- }
-}
+} // end query
 
 // Checks if a table exists
 public function tableExists($table = '') {
@@ -321,6 +357,102 @@ public function tableExists($table = '') {
   else
     return false;
 
+}
+
+/**
+ * update or insert tags
+ *
+ * $table is the table you are tagging from
+ * $tableid is the id of the row from above table
+ * $relationTable = tag_tablename
+ * $tagTable = tags table
+ * $tags = array containing the tags to tag the tableid with
+ * 
+ * Notes: 
+ * relation table must be named tag_$table
+ * relation table column must be named $table_id
+ */
+public function modifyTags($table = null, $rowid = null, $tags = array() ) {
+  
+  // Check parameters were given
+  if ( empty($table) || empty($rowid) )
+    return false;
+
+  $cleantags = array();
+  // Clean the tag
+  foreach ($tags as $value) {
+    $cleantags[] = strtolower(trim($value));
+  }
+  
+  
+  // remove existing relations
+  $sql = "DELETE FROM tag_{$table} WHERE `tag_{$table}`.`{$table}_id` = $rowid";
+  $this->query($sql);
+
+  if ( count($cleantags) < 1 )
+    return true;
+
+  // Make sure tags exist
+  $sql = "INSERT IGNORE INTO `tags` (`title`) VALUES ";
+  $i=0;
+  foreach($cleantags as $tag) {
+    if ($i < 1 ) 
+      $sql .= "('$tag')";
+    else
+      $sql .= ", ('$tag')";
+
+   $i++;
+  }
+  
+  
+  $this->query($sql);
+
+  // Get Tag ids
+  $sql = "SELECT title, id FROM `tags` WHERE ";
+  for ($i=0; $i < count($cleantags); $i++) {
+    if ($i == 0) {
+      $sql .= "`title` = '$cleantags[$i]'";
+    } else {
+      $sql .= " OR `title` = '$cleantags[$i]'";
+    } 
+  }
+  
+  $result = $this->query($sql);
+  
+  $insertArray = array();
+  foreach ($result as $row) {
+    $insertArray[] = array(
+      'id' => 'NULL',
+      "{$table}_id" => $rowid,
+      'tag_id' => $row['id']
+    );
+  }
+  
+  $this->create("tag_{$table}", $insertArray, 'INSERT INTO');
+
+  return true;
+
+}
+
+/**
+ * Gets the tags, returns an array
+ */
+public function getTags($table = null, $id = null) {
+
+  $rtn = array();
+
+  $query = "SELECT t.title FROM tags t JOIN tag_{$table} tp ON t.id = tp.tag_id WHERE tp.{$table}_id = '$id'";
+  $result = $this->con->query($query);
+
+  if ( !empty($result) ) {
+
+      foreach($rows as $v) {
+        $rtn[] = $v['title'];
+      }
+
+  }
+  
+  return ($rtn);
 }
 
 /**
